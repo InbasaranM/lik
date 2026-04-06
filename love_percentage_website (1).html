@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Love Match Meter</title>
+  <style>
+    :root {
+      --bg1: #ff4d6d;
+      --bg2: #ff8fab;
+      --card: rgba(255,255,255,0.16);
+      --stroke: rgba(255,255,255,0.28);
+      --text: #ffffff;
+      --dark: #7a1730;
+      --shadow: 0 20px 60px rgba(122, 23, 48, 0.28);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #ffc2d1 0%, var(--bg2) 35%, var(--bg1) 100%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .result-wrap {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      line-height: 1.05;
+    }
+
+    .sub {
+      margin: 0 0 22px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      padding: 15px 16px;
+      border-radius: 16px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.96);
+      color: #222;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+
+    .primary {
+      background: #fff;
+      color: var(--dark);
+    }
+
+    .secondary {
+      background: rgba(122,23,48,0.22);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .note {
+      margin-top: 18px;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .result-wrap {
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .story-card {
+      width: min(100%, 540px);
+      aspect-ratio: 4 / 5;
+      border-radius: 34px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.45), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(255,255,255,0.26), transparent 25%),
+        linear-gradient(155deg, #ff9ebb 0%, #ff5d8f 42%, #e11d48 100%);
+      box-shadow: 0 24px 80px rgba(122, 23, 48, 0.38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      isolation: isolate;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: clamp(110px, 15vw, 180px);
+      opacity: 0.11;
+      filter: blur(1px);
+      z-index: 0;
+      user-select: none;
+    }
+
+    .heart.one { top: 24px; left: 24px; }
+    .heart.two { bottom: 18px; right: 28px; }
+
+    .result-card-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 26px;
+      text-align: center;
+    }
+
+    .brand {
+      font-size: 0.92rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .names {
+      margin-top: 8px;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      line-height: 1.15;
+      font-weight: 800;
+      word-break: break-word;
+      text-shadow: 0 6px 18px rgba(0,0,0,0.16);
+    }
+
+    .plus {
+      display: inline-block;
+      margin: 12px 0;
+      font-size: 1.5rem;
+      opacity: 0.95;
+    }
+
+    .circle {
+      width: 210px;
+      height: 210px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+      border: 8px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16);
+    }
+
+    .percent {
+      font-size: clamp(3rem, 6vw, 4.6rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .caption {
+      margin-top: 14px;
+      font-size: 1.08rem;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.95);
+      min-height: 48px;
+    }
+
+    .footer {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.84);
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.16);
+      margin: 0 auto;
+      font-weight: 700;
+    }
+
+    .hide-ui .panel {
+      display: none;
+    }
+
+    .hide-ui .app {
+      grid-template-columns: 1fr;
+      width: auto;
+      max-width: 580px;
+    }
+
+    .hide-ui .result-wrap {
+      padding: 0;
+      background: transparent;
+      border: 0;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+
+    @media (max-width: 920px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        order: 2;
+      }
+
+      .result-wrap {
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="panel">
+      <h1>Love Match Meter</h1>
+      <p class="sub">Enter two names, generate a love percentage, and play a voice message. The result card is designed in an Instagram-friendly 4:5 layout so you can take a clean screenshot.</p>
+
+      <div class="field">
+        <label for="name1">First name</label>
+        <input id="name1" type="text" placeholder="Enter first name" />
+      </div>
+
+      <div class="field">
+        <label for="name2">Second name</label>
+        <input id="name2" type="text" placeholder="Enter second name" />
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="calculateBtn">Calculate Love %</button>
+        <button class="secondary" id="speakBtn">Play Voice</button>
+        <button class="secondary" id="toggleUiBtn">Screenshot Mode</button>
+        <button class="secondary" id="resetBtn">Reset</button>
+      </div>
+
+      <p class="note">
+        Screenshot tip: click <strong>Screenshot Mode</strong> to hide the input panel, then take a browser screenshot of the result card for Instagram.
+      </p>
+    </div>
+
+    <div class="result-wrap">
+      <div class="story-card" id="captureCard">
+        <div class="heart one">❤</div>
+        <div class="heart two">❤</div>
+
+        <div class="result-card-inner">
+          <div>
+            <div class="brand">Love Result</div>
+            <div class="names" id="namesDisplay">Your Name <span class="plus">+</span> Partner Name</div>
+          </div>
+
+          <div>
+            <div class="circle">
+              <div class="percent" id="percentDisplay">00%</div>
+            </div>
+            <div class="caption" id="messageDisplay">Enter two names and calculate your love percentage.</div>
+          </div>
+
+          <div>
+            <div class="badge" id="badgeDisplay">💕 Perfect for screenshots</div>
+            <p class="footer">Made with love • Instagram-ready result card</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const name1Input = document.getElementById('name1');
+    const name2Input = document.getElementById('name2');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const toggleUiBtn = document.getElementById('toggleUiBtn');
+    const percentDisplay = document.getElementById('percentDisplay');
+    const namesDisplay = document.getElementById('namesDisplay');
+    const messageDisplay = document.getElementById('messageDisplay');
+    const badgeDisplay = document.getElementById('badgeDisplay');
+    const app = document.getElementById('app');
+
+    let currentVoiceText = 'Enter two names and calculate your love percentage.';
+
+    function seededLovePercentage(a, b) {
+      const first = a.trim().toLowerCase();
+      const second = b.trim().toLowerCase();
+      const combined = [first, second].sort().join('❤');
+      let hash = 0;
+
+      for (let i = 0; i < combined.length; i++) {
+        hash = (hash * 31 + combined.charCodeAt(i)) % 100000;
+      }
+
+      return 40 + (hash % 61); // returns 40 to 100
+    }
+
+    function getMessage(score, a, b) {
+      if (score >= 95) return `${a} and ${b} are a legendary match!`;
+      if (score >= 85) return `${a} and ${b} are glowing with strong love energy.`;
+      if (score >= 70) return `${a} and ${b} make a sweet and beautiful pair.`;
+      if (score >= 55) return `${a} and ${b} have a fun and promising connection.`;
+      return `${a} and ${b} have a playful bond with room to grow.`;
+    }
+
+    function getBadge(score) {
+      if (score >= 95) return '💖 Soulmate energy';
+      if (score >= 85) return '😍 Powerful connection';
+      if (score >= 70) return '💕 Cute couple vibes';
+      if (score >= 55) return '✨ Good match';
+      return '🌸 Starting spark';
+    }
+
+    function speak(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Voice playback is not supported in this browser.');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function calculateLove() {
+      const name1 = name1Input.value.trim();
+      const name2 = name2Input.value.trim();
+
+      if (!name1 || !name2) {
+        alert('Please enter both names.');
+        return;
+      }
+
+      const score = seededLovePercentage(name1, name2);
+      const message = getMessage(score, name1, name2);
+
+      namesDisplay.innerHTML = `${name1} <span class="plus">+</span> ${name2}`;
+      percentDisplay.textContent = `${score}%`;
+      messageDisplay.textContent = message;
+      badgeDisplay.textContent = getBadge(score);
+      currentVoiceText = `${name1} and ${name2} have a love percentage of ${score} percent. ${message}`;
+    }
+
+    calculateBtn.addEventListener('click', calculateLove);
+
+    speakBtn.addEventListener('click', () => {
+      speak(currentVoiceText);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      name1Input.value = '';
+      name2Input.value = '';
+      namesDisplay.innerHTML = `Your Name <span class="plus">+</span> Partner Name`;
+      percentDisplay.textContent = '00%';
+      messageDisplay.textContent = 'Enter two names and calculate your love percentage.';
+      badgeDisplay.textContent = '💕 Perfect for screenshots';
+      currentVoiceText = 'Enter two names and calculate your love percentage.';
+      window.speechSynthesis && window.speechSynthesis.cancel();
+    });
+
+    toggleUiBtn.addEventListener('click', () => {
+      document.body.classList.toggle('hide-ui');
+      toggleUiBtn.textContent = document.body.classList.contains('hide-ui') ? 'Exit Screenshot Mode' : 'Screenshot Mode';
+    });
+
+    [name1Input, name2Input].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') calculateLove();
+      });
+    });
+  </script>
+</body>
+</html>
